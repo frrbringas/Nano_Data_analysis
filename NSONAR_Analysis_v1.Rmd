@@ -1,0 +1,51 @@
+---
+title: "N-Sonar data analysis"
+output: html_notebook
+---
+
+#1- open libraries
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+#2- Open CSV file
+```{r}
+BC01_Nucleosomes <- read_csv("Nucleosome_template_v2.csv")
+head(BC01_Nucleosomes)
+```
+#3- Start to disecting the tibble by filter the required data:
+A) Confirm total number of nucleosomes
+
+```{r}
+T_n <- BC01_Nucleosomes %>%
+  nrow()
+T_n
+```
+
+B) Number of nucleosomes in leading strands. Should be only reads mapped to the plasmid reference.
+
+Fist check the values in the Mapaping_y and StrandStatus columns
+```{r}
+unique(BC01_Nucleosomes$Mapping_y)
+unique(BC01_Nucleosomes$StrandStatus)
+```
+
+
+```{r}
+T_n_Leading <- BC01_Nucleosomes %>% 
+  filter(StrandStatus == "Lead") %>%
+  nrow()
+T_n_Leading
+```
+
+C) Number of nucleosomes in lagging strands. Should be only reads mapped to the plasmid reference.
+
+```{r}
+T_n_lagging <- BC01_Nucleosomes %>%
+  filter(StrandStatus == "Lag") %>% 
+  nrow()
+T_n_lagging 
+
+```
+
