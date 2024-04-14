@@ -56,6 +56,7 @@ T_n_Leadlag <-BC01_Nucleosomes %>%
   mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag")))
 T_n_Leadlag
 ```
+#Ploting the barchart
 ```{r}
 ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
   geom_bar(
@@ -81,3 +82,41 @@ ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
     axis.text.y = element_text(color = "black")
     )
 ```
+E) Calculating nucleosomes in right and left fork
+```{r}
+unique(BC01_Nucleosomes$StrandDirection)
+```
+```{r}
+Fork_nucleosomes <- BC01_Nucleosomes %>% 
+  count(StrandDirection) %>% 
+  mutate(percentage = n/T_n * 100) %>% 
+  mutate(StrandDirection = factor(StrandDirection, levels = c("fwdLead", "revLag", "revLead", "fwdLag")))
+Fork_nucleosomes
+```
+#Ploting the barchart
+```{r}
+ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandDirection)) +
+  geom_col(
+    stat = "identity",
+     color = "black",
+    size = 0.25) +
+  scale_y_continuous(
+    breaks = seq(0, 500, by =10), 
+    limits = c(0, 50), 
+    expand = c(0,0)) +
+  geom_text(
+    aes(label = paste0(round(percentage, 1), "%")),
+            vjust = -0.5) +
+  labs(
+    y= "% of Nucleosomes", 
+    x = "Strands") +
+  scale_x_discrete(
+    labels = c("Leading_R", "Lagging_R", "Leading_L", "Lagging_L")) +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(color = "black"),
+    axis.text.y = element_text(color = "black")
+    )
+```
+
