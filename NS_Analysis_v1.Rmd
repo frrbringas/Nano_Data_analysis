@@ -79,23 +79,25 @@ ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
     legend.position = "none",
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
-    axis.text.y = element_text(color = "black")
-    )
+    axis.text.y = element_text(color = "black"),
+    plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Total nucleosomes")
 ```
 E) Calculating nucleosomes in right and left fork
 ```{r}
 unique(BC01_Nucleosomes$StrandDirection)
 ```
+#Calculating percentage for each strand in the right and left fork
 ```{r}
 Fork_nucleosomes <- BC01_Nucleosomes %>% 
-  count(StrandDirection) %>% 
+  count(StrandStatus, StrandDirection) %>% 
   mutate(percentage = n/T_n * 100) %>% 
   mutate(StrandDirection = factor(StrandDirection, levels = c("fwdLead", "revLag", "revLead", "fwdLag")))
 Fork_nucleosomes
 ```
 #Ploting the barchart
 ```{r}
-ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandDirection)) +
+ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandStatus)) +
   geom_col(
     stat = "identity",
      color = "black",
@@ -116,7 +118,90 @@ ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandD
     legend.position = "none",
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
-    axis.text.y = element_text(color = "black")
-    )
+    axis.text.y = element_text(color = "black"),
+    plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Total nucleosome at Right and Left fork")
 ```
+F) Calculating nucleosomes in the widom sequences. The analysis will be done first in the total amount of nucleosomes only in the Widom sequences.
+```{r}
+unique(BC01_Nucleosomes$`Region of Interest`)
+```
+#Filter data, by removing others
+```{r}
+Widoms <- BC01_Nucleosomes %>% 
+  filter(`Region of Interest` !="Others") %>% 
+  count(StrandStatus) %>% 
+  mutate(percentage = n/T_n *100) %>% 
+  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag")))
+
+Widoms
+
+```
+#Ploting only the % of nucleosomes at the widom sequences
+```{r}
+ggplot(Widoms, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
+  geom_bar(
+    stat = "identity", 
+    color = "black",
+    size = 0.25) +
+  scale_y_continuous(
+    breaks = seq(0, 30, by =10), 
+    limits = c(0, 25), 
+    expand = c(0,0)) +
+  geom_text(
+    aes(label = paste0(round(percentage, 1), "%")),
+            vjust = -0.5) +
+  labs(
+    y= "% of Nucleosomes", 
+    x = "Strands") +
+  scale_x_discrete(
+    labels = c("Leading", "Lagging")) +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(color = "black"),
+    axis.text.y = element_text(color = "black"),
+    plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Total nucleosomes at Widom sequences")
+```
+G) Calculating nucleosomes in the widom sequences.Individual Widom sequences.
+```{r}
+Widoms_unique <- BC01_Nucleosomes %>% 
+  filter(`Region of Interest` !="Others") %>% 
+  count(StrandStatus, `Region of Interest`) %>% 
+  mutate(percentage = n/T_n *100) %>% 
+  mutate(`Region of Interest` = factor(`Region of Interest`, levels = c("Widom626", "Widom612", "Widom605", "Widom601", "Widom603", "Widom607", "Widom613", "Widom618")))
+
+Widoms_unique
+```
+```{r}
+ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = StrandStatus)) +
+  geom_col(
+    stat = "identity",
+     color = "black",
+    size = 0.25,
+    position = "dodge") +
+  scale_y_continuous(
+    breaks = seq(0, 5, by =10), 
+    limits = c(0, 5), 
+    expand = c(0,0)) +
+  geom_text(
+    aes(label = paste0(round(percentage, 1), "%")),
+            vjust = -0.5,
+            position = "dodge") +
+  labs(
+    y= "% of Nucleosomes", 
+    x = "Strands") +
+  #scale_x_discrete(
+   # labels = c("Leading_R", "Lagging_R", "Leading_L", "Lagging_L")) +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(color = "black"),
+    axis.text.y = element_text(color = "black"),
+    plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Total nucleosome at Right and Left fork")
+```
+
+
 
