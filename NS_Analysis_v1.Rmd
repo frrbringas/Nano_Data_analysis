@@ -1,0 +1,83 @@
+---
+title: "N-Sonar data analysis"
+output: html_notebook
+---
+
+#1- open libraries
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+#2- Open CSV file
+```{r}
+BC01_Nucleosomes <- read_delim("Nucleosome_original.csv")
+head(BC01_Nucleosomes)
+```
+#3- Start to disecting the tibble by filter the required data:
+A) Confirm total number of nucleosomes
+
+```{r}
+T_n <- BC01_Nucleosomes %>%
+  nrow()
+T_n
+```
+
+B) Number of nucleosomes in leading strands. Should be only reads mapped to the plasmid reference.
+
+Fist check the values in the Mapaping_y and StrandStatus columns
+```{r}
+unique(BC01_Nucleosomes$Mapping_y)
+unique(BC01_Nucleosomes$StrandStatus)
+```
+
+
+```{r}
+T_n_Leading <- BC01_Nucleosomes %>% 
+  filter(StrandStatus == "Lead") %>%
+  nrow()
+T_n_Leading
+```
+
+C) Number of nucleosomes in lagging strands. Should be only reads mapped to the plasmid reference.
+
+```{r}
+T_n_lagging <- BC01_Nucleosomes %>%
+  filter(StrandStatus == "Lag") %>% 
+  nrow()
+T_n_lagging 
+
+```
+D) Calculate the % of nucleosomes 
+```{r}
+T_n_Leadlag <-BC01_Nucleosomes %>% 
+  count(StrandStatus) %>% 
+  mutate(percentage = n/T_n * 100) %>% 
+  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag")))
+T_n_Leadlag
+```
+```{r}
+ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
+  geom_bar(
+    stat = "identity", 
+    color = "black",
+    size = 0.25) +
+  scale_y_continuous(
+    breaks = seq(0, 100, by =10), 
+    limits = c(0, 100), 
+    expand = c(0,0)) +
+  geom_text(
+    aes(label = paste0(round(percentage, 1), "%")),
+            vjust = -0.5) +
+  labs(
+    y= "% of Nucleosomes", 
+    x = "Strands") +
+  scale_x_discrete(
+    labels = c("Leading", "Lagging")) +
+  theme(
+    legend.position = "none",
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(color = "black"),
+    axis.text.y = element_text(color = "black")
+    )
+```
