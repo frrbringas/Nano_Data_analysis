@@ -53,7 +53,8 @@ D) Calculate the % of nucleosomes
 T_n_Leadlag <-BC01_Nucleosomes %>% 
   count(StrandStatus) %>% 
   mutate(percentage = n/T_n * 100) %>% 
-  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag")))
+  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag"))) %>% 
+  complete(StrandStatus, fill = list(n = 0, percentage = 0 ))
 T_n_Leadlag
 ```
 #Ploting the barchart
@@ -70,6 +71,9 @@ ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
             vjust = -0.5) +
+  geom_text(
+    aes(label = n),
+    vjust = 1.5) +
   labs(
     y= "% of Nucleosomes", 
     x = "Strands") +
@@ -92,12 +96,13 @@ unique(BC01_Nucleosomes$StrandDirection)
 Fork_nucleosomes <- BC01_Nucleosomes %>% 
   count(StrandStatus, StrandDirection) %>% 
   mutate(percentage = n/T_n * 100) %>% 
-  mutate(StrandDirection = factor(StrandDirection, levels = c("fwdLead", "revLag", "revLead", "fwdLag")))
+  mutate(StrandDirection = factor(StrandDirection, levels = c("fwdLead", "revLag", "revLead", "fwdLag"))) %>% 
+  complete(StrandStatus, fill = list(n = 0, percentage = 0))
 Fork_nucleosomes
 ```
 #Ploting the barchart
 ```{r}
-ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandStatus)) +
+ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = rev(StrandStatus))) +
   geom_col(
     stat = "identity",
      color = "black",
@@ -109,6 +114,9 @@ ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = StrandS
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
             vjust = -0.5) +
+  geom_text(
+    aes(label = n),
+    vjust = 1.5) +
   labs(
     y= "% of Nucleosomes", 
     x = "Strands") +
@@ -132,7 +140,8 @@ Widoms <- BC01_Nucleosomes %>%
   filter(`Region of Interest` !="Others") %>% 
   count(StrandStatus) %>% 
   mutate(percentage = n/T_n *100) %>% 
-  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag")))
+  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag"))) %>% 
+  complete(StrandStatus, fill = list(n = 0, percentage = 0))
 
 Widoms
 
@@ -151,6 +160,9 @@ ggplot(Widoms, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
             vjust = -0.5) +
+  geom_text(
+    aes(label = n),
+    vjust = 1.5) +
   labs(
     y= "% of Nucleosomes", 
     x = "Strands") +
@@ -170,7 +182,8 @@ Widoms_unique <- BC01_Nucleosomes %>%
   filter(`Region of Interest` !="Others") %>% 
   count(StrandStatus, `Region of Interest`) %>% 
   mutate(percentage = n/T_n *100) %>% 
-  mutate(`Region of Interest` = factor(`Region of Interest`, levels = c("Widom626", "Widom612", "Widom605", "Widom601", "Widom603", "Widom607", "Widom613", "Widom618")))
+  mutate(`Region of Interest` = factor(`Region of Interest`, levels = c("Widom626", "Widom612", "Widom605", "Widom601", "Widom603", "Widom607", "Widom613", "Widom618"))) %>% 
+  complete(StrandStatus, `Region of Interest`, fill = list(n = 0, percentage = 0))
 
 Widoms_unique
 ```
@@ -182,13 +195,17 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = Stran
     size = 0.25,
     position = "dodge") +
   scale_y_continuous(
-    breaks = seq(0, 5, by =10), 
+    breaks = seq(0, 5, by =1), 
     limits = c(0, 5), 
     expand = c(0,0)) +
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
             vjust = -0.5,
-            position = "dodge") +
+            position = position_dodge(width = 0.9)) +
+   geom_text(
+    aes(label = n),
+    vjust = 1.5,
+    position = position_dodge(width = 0.9)) +
   labs(
     y= "% of Nucleosomes", 
     x = "Strands") +
@@ -200,7 +217,7 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = Stran
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
     plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Total nucleosome at Right and Left fork")
+  ggtitle("Nucleosomes at widom sequences")
 ```
 
 
