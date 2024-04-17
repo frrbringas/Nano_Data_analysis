@@ -11,7 +11,7 @@ library(readr)
 
 #2- Open CSV file
 ```{r}
-BC01_Nucleosomes <- read_delim("Nucleosome_original.csv")
+BC01_Nucleosomes <- read_delim("Nucleosome_Widom_redefined.csv")
 head(BC01_Nucleosomes)
 ```
 #3- Start to disecting the tibble by filter the required data:
@@ -186,12 +186,13 @@ Widoms_unique <- BC01_Nucleosomes %>%
   count(StrandStatus, `Region of Interest`) %>% 
   mutate(percentage = n/T_n *100) %>% 
   mutate(`Region of Interest` = factor(`Region of Interest`, levels = c("Widom626", "Widom612", "Widom605", "Widom601", "Widom603", "Widom607", "Widom613", "Widom618"))) %>% 
+  mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag"))) %>% 
   complete(StrandStatus, `Region of Interest`, fill = list(n = 0, percentage = 0))
 
 Widoms_unique
 ```
 ```{r}
-ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = StrandStatus)) +
+ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(StrandStatus))) +
   geom_col(
     stat = "identity",
      color = "black",
@@ -216,7 +217,7 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = Stran
   #scale_x_discrete(
    # labels = c("Leading_R", "Lagging_R", "Leading_L", "Lagging_L")) +
   theme(
-    legend.position = "none",
+    #legend.position = "none",
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
