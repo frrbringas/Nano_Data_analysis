@@ -59,7 +59,7 @@ T_n_Leadlag
 ```
 #Ploting the barchart
 ```{r}
-ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
+p1 <- ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
   geom_bar(
     stat = "identity", 
     color = "black",
@@ -85,8 +85,14 @@ ggplot(T_n_Leadlag, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
-    plot.title = element_text(hjust = 0.5)) +
+    plot.title = element_text(hjust = 0.5),
+    panel.background = element_blank(),
+    plot.background = element_blank()) +
   ggtitle("Total nucleosomes")
+
+  ggsave("Total_nucleosomes_BC01.svg", plot = p1)
+
+print(p1)
 ```
 E) Calculating nucleosomes in right and left fork
 ```{r}
@@ -97,13 +103,13 @@ unique(BC01_Nucleosomes$StrandDirection)
 Fork_nucleosomes <- BC01_Nucleosomes %>% 
   count(StrandStatus, StrandDirection) %>% 
   mutate(percentage = n/T_n * 100) %>% 
-  mutate(StrandDirection = factor(StrandDirection, levels = c("fwdLead", "revLag", "revLead", "fwdLag"))) %>% 
+  mutate(StrandDirection = factor(StrandDirection, levels = c("revLead", "fwdLag", "fwdLead", "revLag"))) %>% 
   complete(StrandStatus, fill = list(n = 0, percentage = 0))
 Fork_nucleosomes
 ```
 #Ploting the barchart
 ```{r}
-ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = rev(StrandStatus))) +
+p2 <- ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = rev(StrandStatus))) +
   geom_col(
     stat = "identity",
      color = "black",
@@ -123,25 +129,40 @@ ggplot(Fork_nucleosomes, aes(x = StrandDirection, y = percentage, fill = rev(Str
     y= "% of Nucleosomes", 
     x = "Strands") +
   scale_x_discrete(
-    labels = c("Leading_R", "Lagging_R", "Leading_L", "Lagging_L")) +
+    labels = c("Leading L", "Lagging L", "Leading R", "Lagging R")) +
   theme(
     legend.position = "none",
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
-    plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Total nucleosome at Right and Left fork")
+    plot.title = element_text(hjust = 0.5),
+    panel.background = element_blank(),
+    plot.background = element_blank()) +
+  ggtitle("Total nucleosomes at Right and Left fork")
+
+ggsave("Total_nucleosomes_at_Right_and_left_fork_BC01.svg", plot= p2)
+
+print(p2)
 ```
 F) Calculating nucleosomes in the widom sequences. The analysis will be done first in the total amount of nucleosomes only in the Widom sequences.
 ```{r}
 unique(BC01_Nucleosomes$`Region of Interest`)
+head(BC01_Nucleosomes)
 ```
+#Redefined the total of nucleosomes only at the widom sequences
+```{r}
+T_n_widom <- BC01_Nucleosomes %>% 
+  filter(`Region of Interest` != "Others") %>% 
+  nrow()
+T_n_widom
+```
+
 #Filter data, by removing others
 ```{r}
 Widoms <- BC01_Nucleosomes %>% 
   filter(`Region of Interest` !="Others") %>% 
   count(StrandStatus) %>% 
-  mutate(percentage = n/T_n *100) %>% 
+  mutate(percentage = n/T_n_widom *100) %>% 
   mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag"))) %>% 
   complete(StrandStatus, fill = list(n = 0, percentage = 0))
 
@@ -150,15 +171,15 @@ Widoms
 ```
 #Ploting only the % of nucleosomes at the widom sequences
 ```{r}
-ggplot(Widoms, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
+p3 <- ggplot(Widoms, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
   geom_bar(
     stat = "identity", 
     color = "black",
     size = 0.25,
     width = 0.8) +
   scale_y_continuous(
-    breaks = seq(0, 30, by =10), 
-    limits = c(0, 25), 
+    breaks = seq(0, 100, by =10), 
+    limits = c(0, 100), 
     expand = c(0,0)) +
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
@@ -176,15 +197,21 @@ ggplot(Widoms, aes(x = StrandStatus, y= percentage, fill = StrandStatus)) +
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
-    plot.title = element_text(hjust = 0.5)) +
+    plot.title = element_text(hjust = 0.5),
+    panel.background = element_blank(),
+    plot.background = element_blank()) +
   ggtitle("Total nucleosomes at Widom sequences")
+
+ggsave("Total_nucleosomes_at_Widom_sequences_BC01.svg", plot = p3)
+
+print(p3)
 ```
 G) Calculating nucleosomes in the widom sequences.Individual Widom sequences.
 ```{r}
 Widoms_unique <- BC01_Nucleosomes %>% 
   filter(`Region of Interest` !="Others") %>% 
   count(StrandStatus, `Region of Interest`) %>% 
-  mutate(percentage = n/T_n *100) %>% 
+  mutate(percentage = n/T_n_widom *100) %>% 
   mutate(`Region of Interest` = factor(`Region of Interest`, levels = c("Widom626", "Widom612", "Widom605", "Widom601", "Widom603", "Widom607", "Widom613", "Widom618"))) %>% 
   mutate(StrandStatus = factor(StrandStatus, levels = c("Lead", "Lag"))) %>% 
   complete(StrandStatus, `Region of Interest`, fill = list(n = 0, percentage = 0))
@@ -192,7 +219,7 @@ Widoms_unique <- BC01_Nucleosomes %>%
 Widoms_unique
 ```
 ```{r}
-ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(StrandStatus))) +
+p4 <- ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(StrandStatus))) +
   geom_col(
     stat = "identity",
      color = "black",
@@ -200,8 +227,8 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(S
     position = "dodge",
     width = 0.8) +
   scale_y_continuous(
-    breaks = seq(0, 5, by =1), 
-    limits = c(0, 5), 
+    breaks = seq(0, 20, by =1), 
+    limits = c(0, 20), 
     expand = c(0,0)) +
   geom_text(
     aes(label = paste0(round(percentage, 1), "%")),
@@ -213,7 +240,8 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(S
     position = position_dodge(width = 0.9)) +
   labs(
     y= "% of Nucleosomes", 
-    x = "Strands") +
+    x = "Strands",
+    fill = "Strand") +
   #scale_x_discrete(
    # labels = c("Leading_R", "Lagging_R", "Leading_L", "Lagging_L")) +
   theme(
@@ -221,8 +249,14 @@ ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(S
     axis.line = element_line(color = "black", size = 0.5),
     axis.text.x = element_text(color = "black"),
     axis.text.y = element_text(color = "black"),
-    plot.title = element_text(hjust = 0.5)) +
+    plot.title = element_text(hjust = 0.5),
+    panel.background = element_blank(),
+    plot.background = element_blank()) +
   ggtitle("Nucleosomes at widom sequences")
+
+ggsave("Nucleosomes_at_widom_sequences_BC01.svg", plot = p4)
+
+print(p4)
 ```
 
 
