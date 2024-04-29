@@ -101,10 +101,11 @@ unique(BC01_Nucleosomes$StrandDirection)
 #Calculating percentage for each strand in the right and left fork
 ```{r}
 Fork_nucleosomes <- BC01_Nucleosomes %>% 
-  count(StrandStatus, StrandDirection) %>% 
+  count(StrandStatus, StrandDirection) %>%
   mutate(percentage = n/T_n * 100) %>% 
   mutate(StrandDirection = factor(StrandDirection, levels = c("revLead", "fwdLag", "fwdLead", "revLag"))) %>% 
-  complete(StrandStatus, fill = list(n = 0, percentage = 0))
+  complete(StrandStatus, StrandDirection, fill = list(n = 0, percentage = 0)) %>% 
+  filter(StrandStatus == c("Lead", "Lag"), StrandDirection == c("revLead", "fwdLag", "fwdLead", "revLag"))
 Fork_nucleosomes
 ```
 #Ploting the barchart
@@ -219,7 +220,7 @@ Widoms_unique <- BC01_Nucleosomes %>%
 Widoms_unique
 ```
 ```{r}
-p4 <- ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = rev(StrandStatus))) +
+p4 <- ggplot(Widoms_unique, aes(x = `Region of Interest`, y = percentage, fill = StrandStatus)) +
   geom_col(
     stat = "identity",
      color = "black",

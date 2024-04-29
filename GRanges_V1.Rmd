@@ -1,0 +1,228 @@
+---
+title: "G-Ranges"
+output: html_notebook
+---
+
+#1- open libraries
+```{r}
+library(tidyverse)
+library(readr)
+library(GenomicRanges)
+```
+
+
+#2- Open CSV file
+```{r}
+BC01_Nucleosomes <- read_delim("Nucleosome_Widom_redefined.csv")
+head(BC01_Nucleosomes)
+```
+```{r}
+GR_BC01 <- BC01_Nucleosomes %>% 
+  select(ReadName, Mapping_y, MapStart_y, MapEnd_y, StrandStatus, StrandDirection) %>% 
+  mutate(StrandRep = if_else(StrandStatus=="Lead","+","-"))
+GR_BC01
+```
+
+```{r}
+GR_BC01_format <- GRanges(seqnames = GR_BC01$Mapping_y,
+        ranges = IRanges(start = GR_BC01$MapStart_y, end = GR_BC01$MapEnd_y),
+        strand = GR_BC01$StrandRep,
+        strand_status = GR_BC01$StrandStatus)
+
+GR_BC01_format
+  
+```
+#Make the coverage. In this case is the total.
+```{r}
+Cover <- coverage(GR_BC01_format)
+as.numeric(Cover$pFB2)
+```
+#Preparing data in better format
+```{r}
+df_BC01_orig <-data.frame("Position" = seq_along(as.numeric(Cover$pFB2)), 
+                          "Coverage" = as.numeric(Cover$pFB2), Type_coverage = "barcode01")
+head(df_BC01_orig)
+```
+
+Plot the coverage
+```{r}
+ggplot(df_BC01_orig) +
+  geom_area(aes(x = Position, y = Coverage))
+  
+```
+#Separate for Leading and then lagging.
+```{r}
+GR_BC01_Leading <- GR_BC01 %>% 
+  filter(StrandStatus == "Lead")
+GR_BC01_Leading
+
+GR_BC01_Lagging <- GR_BC01 %>% 
+  filter(StrandStatus == "Lag")
+GR_BC01_Lagging
+
+
+```
+#Transform to Granges
+```{r}
+GR_BC01_format_Leading <- GRanges(seqnames = GR_BC01_Leading$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Leading$MapStart_y, end = GR_BC01_Leading$MapEnd_y),
+        strand = GR_BC01_Leading$StrandRep,
+        strand_status = GR_BC01_Leading$StrandStatus)
+GR_BC01_format_Leading
+
+GR_BC01_format_Lagging <- GRanges(seqnames = GR_BC01_Lagging$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Lagging$MapStart_y, end = GR_BC01_Lagging$MapEnd_y),
+        strand = GR_BC01_Lagging$StrandRep,
+        strand_status = GR_BC01_Lagging$StrandStatus)
+GR_BC01_format_Lagging
+
+```
+#Make coverage for Leading
+```{r}
+Cover_leading <- coverage(GR_BC01_format_Leading)
+as.numeric(Cover_leading$pFB2)
+```
+
+#Make covergae for Lagging
+```{r}
+Cover_lagging <- coverage(GR_BC01_format_Lagging)
+as.numeric(Cover_lagging$pFB2)
+```
+
+#Prepare data for a better format
+```{r}
+df_BC01_leading <-data.frame("Position" = seq_along(as.numeric(Cover_leading$pFB2)), 
+                          "Coverage" = as.numeric(Cover_leading$pFB2), Type_coverage = "barcode01")
+head(df_BC01_leading)
+
+df_BC01_lagging <-data.frame("Position" = seq_along(as.numeric(Cover_lagging$pFB2)), 
+                          "Coverage" = as.numeric(Cover_lagging$pFB2), Type_coverage = "barcode01")
+head(df_BC01_lagging)
+```
+Plot the coverages. Leading
+```{r}
+ggplot(df_BC01_leading) +
+  geom_area(aes(x = Position, y = Coverage))
+```
+Plot the coverages. Lagging
+
+```{r}
+ggplot(df_BC01_lagging) +
+  geom_area(aes(x = Position, y = Coverage))
+```
+#Separate in the 4 different quadrants. Maybe it is easy to plot.
+```{r}
+head(GR_BC01)
+unique(GR_BC01$StrandDirection)
+
+GR_BC01_Left_Lag <- GR_BC01 %>% 
+  filter(StrandDirection == "fwdLag")
+GR_BC01_Left_Lag
+
+GR_BC01_Left_Lead <- GR_BC01 %>% 
+  filter(StrandDirection == "revLead")
+GR_BC01_Left_Lead
+
+GR_BC01_Right_Lag <- GR_BC01 %>% 
+  filter(StrandDirection == "revLag")
+GR_BC01_Right_Lag
+
+GR_BC01_Right_Lead <- GR_BC01 %>% 
+  filter(StrandDirection == "fwdLead")
+GR_BC01_Right_Lead
+
+```
+ 
+ #Transform to GRanges
+```{r}
+GR_BC01_format_left_lagging <- GRanges(seqnames = GR_BC01_Left_Lag$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Left_Lag$MapStart_y, end = GR_BC01_Left_Lag$MapEnd_y),
+        strand = GR_BC01_Left_Lag$StrandRep,
+        strand_status = GR_BC01_Left_Lag$StrandStatus,
+        strand_direction = GR_BC01_Left_Lag$StrandDirection)
+GR_BC01_format_left_lagging
+
+GR_BC01_format_left_leading <- GRanges(seqnames = GR_BC01_Left_Lead$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Left_Lead$MapStart_y, end = GR_BC01_Left_Lead$MapEnd_y),
+        strand = GR_BC01_Left_Lead$StrandRep,
+        strand_status = GR_BC01_Left_Lead$StrandStatus,
+        strand_direction = GR_BC01_Left_Lead$StrandDirection)
+GR_BC01_format_left_leading
+
+GR_BC01_format_Right_lagging <- GRanges(seqnames = GR_BC01_Right_Lag$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Right_Lag$MapStart_y, end = GR_BC01_Right_Lag$MapEnd_y),
+        strand = GR_BC01_Right_Lag$StrandRep,
+        strand_status = GR_BC01_Right_Lag$StrandStatus,
+        strand_direction = GR_BC01_Right_Lag$StrandDirection)
+GR_BC01_format_Right_lagging
+
+GR_BC01_format_Right_leading <- GRanges(seqnames = GR_BC01_Right_Lead$Mapping_y,
+        ranges = IRanges(start = GR_BC01_Right_Lead$MapStart_y, end = GR_BC01_Right_Lead$MapEnd_y),
+        strand = GR_BC01_Right_Lead$StrandRep,
+        strand_status = GR_BC01_Right_Lead$StrandStatus,
+        strand_direction = GR_BC01_Right_Lead$StrandDirection)
+GR_BC01_format_Right_leading
+
+```
+```{r}
+Cover_left_lag <- coverage(GR_BC01_format_left_lagging)
+as.numeric(Cover_left_lag$pFB2)
+
+Cover_left_lead <- coverage(GR_BC01_format_left_leading)
+as.numeric(Cover_left_lead$pFB2)
+
+Cover_rigth_lag <- coverage(GR_BC01_format_Right_lagging)
+as.numeric(Cover_rigth_lag$pFB2)
+
+Cover_rigth_lead <- coverage(GR_BC01_format_Right_leading)
+as.numeric(Cover_rigth_lead$pFB2)
+
+```
+ #Prepare data for better format
+```{r}
+df_BC01_Left_lag <-data.frame("Position" = seq_along(as.numeric(Cover_left_lag$pFB2)), 
+                          "Coverage" = as.numeric(Cover_left_lag$pFB2), Type_coverage = "Left_lag")
+head(df_BC01_Left_lag)
+
+df_BC01_Left_lead <-data.frame("Position" = seq_along(as.numeric(Cover_left_lead$pFB2)), 
+                          "Coverage" = as.numeric(Cover_left_lead$pFB2), Type_coverage = "Left_lead")
+head(df_BC01_Left_lead)
+
+df_BC01_Rigth_lag <-data.frame("Position" = seq_along(as.numeric(Cover_rigth_lag$pFB2)), 
+                          "Coverage" = as.numeric(Cover_rigth_lag$pFB2), Type_coverage = "Rigth_lag")
+head(df_BC01_Rigth_lag)
+
+df_BC01_Right_lead <-data.frame("Position" = seq_along(as.numeric(Cover_rigth_lead$pFB2)), 
+                          "Coverage" = as.numeric(Cover_rigth_lead$pFB2), Type_coverage = "Right_lead")
+head(df_BC01_Right_lead)
+```
+#Plot
+```{r}
+ggplot(df_BC01_Left_lag) +
+  geom_area(aes(x = Position, y = Coverage))
+
+ggplot(df_BC01_Left_lead) +
+  geom_area(aes(x = Position, y = Coverage))
+
+
+ggplot(df_BC01_Rigth_lag) +
+  geom_area(aes(x = Position, y = Coverage))
+
+ggplot(df_BC01_Right_lead) +
+  geom_area(aes(x = Position, y = Coverage))
+```
+#Join the dataframes in order to plot all of them.
+
+```{r}
+plot_combine_df <- rbind((df_BC01_Left_lag),(df_BC01_Left_lead),(df_BC01_Rigth_lag),(df_BC01_Right_lead))
+unique(plot_combine_df$Type_coverage)
+```
+#Make the plot of all qudrants
+```{r}
+ggplot(plot_combine_df) +
+  geom_area(aes(x = Position, y = Coverage)) +
+  facet_grid(rows = vars(Type_coverage))
+```
+
+
+ 
